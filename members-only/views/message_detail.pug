@@ -1,0 +1,14 @@
+extends layout
+
+block content
+
+    h1 #{message.title}
+    br
+    h5 Message detail: 
+    p #{message.text}
+    br
+    div(style='display:flex;gap:.5rem')
+        p Posted at: #{message.timestamp_formatted}
+    div(style='display:flex;gap:.5rem')
+        p Posted by: 
+        a(href=message.owner.url) #{message.owner.username}

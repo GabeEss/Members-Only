@@ -30,10 +30,8 @@ console.log(
     mongoose.connection.close();
   }
   
-  async function userCreate(index, first_name, family_name, username, password, membership_status) {
+  async function userCreate(index, username, password) {
     const user = new User({ 
-        first_name: first_name,
-        family_name: family_name,
         username: username,
         password: password,
     });
@@ -58,9 +56,9 @@ console.log(
   async function createUsers() {
     console.log("Adding users");
     await Promise.all([
-      userCreate(0, "Tom", "Sawyer", "newGuy1313", "Jajaja2918"),
-      userCreate(1, "Gary", "Sawyer", "newGuy9363", "Zazaza9183"),
-      userCreate(2, "Danny", "White", "memberGuy9347", "9182gfe7465"),
+      userCreate(0, "newGuy1313", "Jajaja2918"),
+      userCreate(1, "newGuy9363", "Zazaza9183"),
+      userCreate(2, "memberGuy9347", "9182gfe7465"),
     ]);
   }
   
@@ -69,7 +67,7 @@ console.log(
     await Promise.all([
       messageCreate(0, "A Message", "Hello, this is a message.", "2023-12-4", users[0]),
       messageCreate(1, "The Message", "Hello, this is the message.", "2023-12-4", users[1]),
-      messageCreate(2, "A Message", "Hello, this is a hello.", "2023-12-4", users[2]),
-      messageCreate(3, "A Message", "No, this is Patrick.", "2023-12-4", users[2]),
+      messageCreate(2, "A Hello", "Hello, this is a hello.", "2023-12-4", users[2]),
+      messageCreate(3, "A Patrick", "No, this is Patrick.", "2023-12-4", users[2]),
     ]);
   }
