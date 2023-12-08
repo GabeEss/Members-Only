@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
+// Longer password needed for bcrypt
 const UserSchema = new Schema({
   username: { type: String, required: true, maxLength: 100 },
-  password: { type: String, required: true, maxLength: 50 },
+  password: { type: String, required: true, maxLength: 200 },
 });
 
 // Virtual for user's URL

@@ -1,4 +1,5 @@
 const passport = require('passport');
+const bcrypt = require('bcryptjs');
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
@@ -48,39 +49,50 @@ exports.user_create_post = [
     .trim()
     .isLength({ min: 8 })
     .escape()
-    .withMessage("Password with 8 characters required."),
+    .withMessage("Password with 8 characters required.")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]+$/)
+    .withMessage("Password must contain at least one uppercase letter, one lowercase letter, and one number."),
 
   // Process request after validation and sanitization.
   asyncHandler(async (req, res, next) => {
-    // Extract the validation errors from a request.
-    const errors = validationResult(req);
-    
-    const user = new User({ 
-      username: req.body.username,
-      password: req.body.password
-    });
+    try {
+      bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+        if (err) {
+            // Handle the error (e.g., log it, send an error response)
+            return next(err);
+        }
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+        
+        const user = new User({ 
+          username: req.body.username,
+          password: hashedPassword
+        });
 
-    if (!errors.isEmpty()) {
-      // There are errors. Render the form again with sanitized values/error messages.
-      res.render("user_form", {
-        title: "Create User",
-        user: user,
-        errors: errors.array(),
-        c_user: req.user
-      });
-      return;
-    } else {
-      // Data from form is valid.
-      // Check if user with same name already exists.
-      const userExists = await User.findOne({ username: req.body.username }).exec();
-      if (userExists) {
-        // User exists, redirect to its detail page.
-        res.redirect(userExists.url);
-      } else {
-        await user.save();
-        // New user saved. Redirect to user detail page.
-        res.redirect(user.url);
-      }
+        if (!errors.isEmpty()) {
+          // There are errors. Render the form again with sanitized values/error messages.
+          res.render("user_form", {
+            title: "Create User",
+            user: user,
+            errors: errors.array(),
+            c_user: req.user
+          });
+          return;
+        } else {
+          // Data from form is valid.
+          // Check if user with same name already exists.
+          const userExists = await User.findOne({ username: req.body.username }).exec();
+          if (userExists) {
+            // User exists, redirect to its detail page.
+            res.redirect(userExists.url);
+          } else {
+            await user.save();
+            // New user saved. Redirect to user detail page.
+            res.redirect(user.url);
+          }
+        }
+    })} catch (err) {
+      return next(err);
     }
   }),
 ];
@@ -101,7 +113,6 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
 
 // Handle user logout on GET
 exports.user_logout_get = asyncHandler(async (req, res, next) => {
-    console.log("Reached /user/logout route");
     // Using req.logout with a callback function
     req.logout((err) => {
       if (err) {
