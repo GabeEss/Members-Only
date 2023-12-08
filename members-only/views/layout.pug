@@ -21,8 +21,12 @@ html(lang='en')
               li
                 a(href='/messageboard/messages') All messages
                 hr
-              li
-                a(href='/messageboard/user/create') Create an account
+              if c_user
+              else
+                li
+                  a(href='/messageboard/user/create') Create an account
+                li
+                  a(href='/messageboard/user/login') Login
               li
                 a(href='/messageboard/message/create') Create a message
 

@@ -16,6 +16,7 @@ exports.index = asyncHandler(async (req, res, next) => {
         title: "Members Only Home",
         user_count: numUsers,
         message_count: numMessages,
+        c_user: req.user
     });
 });
 
@@ -26,7 +27,7 @@ exports.message_list = asyncHandler(async (req, res, next) => {
     .populate("owner")
     .exec();
 
-  res.render("message_list", { title: "Message List", message_list: allMessages });
+  res.render("message_list", { title: "Message List", message_list: allMessages, c_user: req.user });
 });
 
 // Display detail page for a specific message.
@@ -43,6 +44,7 @@ exports.message_detail = asyncHandler(async (req, res, next) => {
   res.render("message_detail", {
     title: "Message Detail",
     message: message,
+    c_user: req.user
   });
 });
 

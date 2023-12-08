@@ -2,7 +2,12 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #[em Members Only].
+  // Display username if a user is logged in
+  if c_user
+    p Welcome to #[em Members Only], #{c_user.username}!
+    a(href='/user/logout') Logout
+  else
+    p Welcome to #[em Members Only].
 
   p The message board has the following record counts:
 

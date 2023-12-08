@@ -9,7 +9,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require("mongoose");
 const User = require("./models/user");
-
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 const messageboardRouter = require("./routes/messageboard");
@@ -25,16 +24,49 @@ async function main() {
   await mongoose.connect(mongoDb);
 }
 
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 app.use(express.json());
-// app.use(session({ secret: "cats", resave: false, saveUninitialized: true }));
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(session({ secret: "cats", resave: false, saveUninitialized: true }));
+
+// Will be called to authenticate user.
+passport.use(
+  new LocalStrategy(async (username, password, done) => {
+    try {
+      const user = await User.findOne({ username: username });
+      if (!user) {
+        return done(null, false, { message: "Incorrect username" });
+      };
+      if (user.password !== password) {
+        return done(null, false, { message: "Incorrect password" });
+      };
+      return done(null, user);
+    } catch(err) {
+      return done(err);
+    };
+  })
+);
+
+// Keep user logged in
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// Log user out
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch(err) {
+    done(err);
+  };
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
