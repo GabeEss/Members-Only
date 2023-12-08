@@ -99,13 +99,15 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
   })(req, res, next);
 });
 
-// Handle user logout
-exports.user_logout_post = asyncHandler(async (req, res, next) => {
-  req.logout((err) => {
-    if (err) {
-      return next(err);
-    }
-    res.redirect("/");
+// Handle user logout on GET
+exports.user_logout_get = asyncHandler(async (req, res, next) => {
+    console.log("Reached /user/logout route");
+    // Using req.logout with a callback function
+    req.logout((err) => {
+      if (err) {
+          return next(err);
+      }
+      res.redirect("/");
   });
 });
 

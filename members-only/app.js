@@ -50,12 +50,10 @@ passport.use(
   })
 );
 
-// Keep user logged in
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-// Log user out
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);

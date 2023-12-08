@@ -22,6 +22,8 @@ html(lang='en')
                 a(href='/messageboard/messages') All messages
                 hr
               if c_user
+                li
+                  <a href="/messageboard/user/logout">Log out</a>
               else
                 li
                   a(href='/messageboard/user/create') Create an account

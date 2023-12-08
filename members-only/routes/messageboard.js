@@ -22,8 +22,8 @@ router.get("/user/login", user_controller.user_login_get);
 // POST request for logging a user in.
 router.post("/user/login", user_controller.user_login_post);
 
-// POST request for logging a user out.
-router.post("/user/logout", user_controller.user_logout_post);
+// GET request for logging the user out
+router.get('/user/logout', user_controller.user_logout_get);
 
 // GET request to delete user.
 router.get("/user/:id/delete", user_controller.user_delete_get);
