@@ -12,6 +12,8 @@ block content
       input#password.form-control(type='password', placeholder='' name='password' required='true' value=(undefined===password ? '' : user.password) )
     button.btn.btn-primary(type='submit') Submit
 
+  if errorMessage 
+    p #{errorMessage}
   if errors
     ul
       for error in errors

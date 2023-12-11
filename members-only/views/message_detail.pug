@@ -9,6 +9,16 @@ block content
     br
     div(style='display:flex;gap:.5rem')
         p Posted at: #{message.timestamp_formatted}
-    div(style='display:flex;gap:.5rem')
-        p Posted by: 
-        a(href=message.owner.url) #{message.owner.username}
+    if c_user
+        div(style='display:flex;gap:.5rem')
+            p Posted by: 
+            a(href=message.owner.url) #{message.owner.username}
+            hr
+            //- p #{c_user._id} #{message.owner._id}
+            if c_user._id.toString() === message.owner._id.toString()
+                p
+                    a(href=message.url+'/delete') Delete Message
+                p
+                    a(href=message.url+'/update') Update Message
+            //- else
+            //-     p The condition is not true

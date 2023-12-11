@@ -87,8 +87,15 @@ exports.user_create_post = [
             res.redirect(userExists.url);
           } else {
             await user.save();
-            // New user saved. Redirect to user detail page.
-            res.redirect(user.url);
+            console.log("user created");
+            
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                console.error("Error during login:", loginErr);
+                return next(loginErr);
+              }
+              res.redirect("/");
+            });
           }
         }
     })} catch (err) {
@@ -99,15 +106,28 @@ exports.user_create_post = [
 
 // Display login form as user on GET.
 exports.user_login_get = asyncHandler(async (req, res, next) => {
-  res.render("user_login", { title: "User Login", c_user: req.user})
+  res.render("user_login", { title: "User Login", c_user: req.user })
 });
 
 // Handle user login on POST.
 exports.user_login_post = asyncHandler(async (req, res, next) => {
-  passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/user/login',
-    failureFlash : true,
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      // Authentication failed
+      const errorMessage = 'Incorrect username or password';
+      return res.render('user_login', { title: 'User Login', c_user: req.user, errorMessage: errorMessage });
+    }
+    // Authentication successful, log in the user
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        return next(loginErr);
+      }
+      // Redirect to the home page or another success page
+      return res.redirect('/');
+    });
   })(req, res, next);
 });
 

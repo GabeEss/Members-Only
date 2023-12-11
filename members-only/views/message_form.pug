@@ -1,0 +1,21 @@
+extends layout
+
+block content
+
+  h1 #{title}
+
+  if c_user
+    form(method='POST' action='')
+        div.form-group
+        label(for='title') Title:
+        input#title.form-control(type='text', placeholder='' name='title' required='true' value=(undefined===message ? '' : message.title) )
+        label(for='text') Details:
+        input#password.form-control(type='text', placeholder='' name='text' required='true' value=(undefined===message ? '' : message.text) )
+        button.btn.btn-primary(type='submit') Submit
+  else
+    p You shouldn't be here.
+
+  if errors
+    ul
+      for error in errors
+        li!= error.msg

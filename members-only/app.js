@@ -30,7 +30,12 @@ app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(session({ secret: "cats", resave: false, saveUninitialized: true }));
+app.use(session({ 
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+}));
 
 // Will be called to authenticate user.
 passport.use(
