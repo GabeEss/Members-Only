@@ -145,6 +145,15 @@ exports.message_update_post = [
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
+    // Check if the current user is the owner of the original message
+    const originalMessage = await Message.findById(req.params.id);
+
+    if (!originalMessage || !originalMessage.owner.equals(req.user._id)) {
+      // User is not the owner of the original message. Redirect or handle accordingly.
+      res.status(403).send("Unauthorized");
+      return;
+    }
+
     // Create a Message object with escaped/trimmed data and old id.
     const message = new Message({
         title: req.body.title,
