@@ -100,12 +100,41 @@ exports.message_create_post = [
 
 // Display message delete form on GET.
 exports.message_delete_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: message delete GET");
+  const message = await Message.findById(req.params.id).populate("owner").exec();
+
+  if (message === null) {
+    // No results.
+    const err = new Error("Message not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render("message_delete", {
+    title: "Delete Message",
+    message: message,
+    c_user: req.user,
+  });
 });
 
 // Handle message delete on POST.
 exports.message_delete_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: message delete POST");
+  const message = await Message.findById(req.params.id).populate("owner").exec();
+
+  if (!message.owner.equals(req.user._id)) {
+    // User is not the owner of the original message. Redirect or handle accordingly.
+    res.status(403).send("Unauthorized");
+    return;
+  }
+
+  if (message === null) {
+    // No results.
+    const err = new Error("Message not found");
+    err.status = 404;
+    return next(err);
+  } else {
+    await Message.findByIdAndDelete(req.body.messageid);
+    res.redirect("/");
+  }
 });
 
 // Display message update form on GET.
