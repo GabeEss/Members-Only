@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 const session = require("express-session");
 const passport = require("passport");
+const bcrypt = require('bcryptjs');
 const LocalStrategy = require("passport-local").Strategy;
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -45,9 +46,10 @@ passport.use(
       if (!user) {
         return done(null, false, { message: "Incorrect username" });
       };
-      if (user.password !== password) {
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
         return done(null, false, { message: "Incorrect password" });
-      };
+      }
       return done(null, user);
     } catch(err) {
       return done(err);

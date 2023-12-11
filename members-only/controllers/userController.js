@@ -144,7 +144,20 @@ exports.user_logout_get = asyncHandler(async (req, res, next) => {
 
 // Display user delete form on GET.
 exports.user_delete_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: user delete GET");
+  const user = await User.findById(req.params.id).exec();
+
+  if (user === null) {
+    // No results.
+    const err = new Error("User not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render("user_delete", {
+    title: "Delete User",
+    user: user,
+    c_user: req.user,
+  });
 });
 
 // Handle user delete on POST.
@@ -154,10 +167,96 @@ exports.user_delete_post = asyncHandler(async (req, res, next) => {
 
 // Display user update form on GET.
 exports.user_update_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: user update GET");
+  const user = await User.findById(req.params.id).exec();
+
+  if (user === null) {
+    // No results.
+    const err = new Error("User not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render("user_form", {
+    title: "Update User",
+    user: user,
+    c_user: req.user,
+  });
 });
 
 // Handle user update on POST.
-exports.user_update_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: user update POST");
-});
+exports.user_update_post = [
+  // Validate and sanitize the username field.
+  body("username")
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .withMessage("User name must be specified."),
+  body("password")
+    .trim()
+    .isLength({ min: 8 })
+    .escape()
+    .withMessage("Password with 8 characters required.")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]+$/)
+    .withMessage("Password must contain at least one uppercase letter, one lowercase letter, and one number."),
+
+  // Process request after validation and sanitization.
+  asyncHandler(async (req, res, next) => {
+    try {
+      // Check if the current user is the user being updated
+      const originalUser = await User.findById(req.params.id);
+
+      if (!originalUser || !originalUser.equals(req.user._id)) {
+        // User is not the owner of the original message. Redirect or handle accordingly.
+        res.status(403).send("Unauthorized");
+        return;
+      }
+
+      // salt and hash updated password
+      bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+        if (err) {
+            // Handle the error (e.g., log it, send an error response)
+            return next(err);
+        }
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+        
+        const user = new User({ 
+          username: req.body.username,
+          password: hashedPassword,
+          _id: req.params.id, // This is required, or a new ID will be assigned!
+        });
+
+        if (!errors.isEmpty()) {
+          // There are errors. Render the form again with sanitized values/error messages.
+          res.render("user_form", {
+            title: "Update User",
+            user: user,
+            errors: errors.array(),
+            c_user: req.user
+          });
+          return;
+        } else {
+          // Check if user with same name already exists.
+          let userExists = false;
+          if(req.body.username !== req.user.username)
+            userExists = await User.findOne({ username: req.body.username }).exec();
+          
+          if (userExists) {
+            // User exists, render the form again with an error message.
+            res.render("user_form", {
+              title: "Update User",
+              user: user,
+              errors: [{ msg: "User with this name already exists." }], // Add a custom error message
+              c_user: req.user,
+            });
+          } else {
+            // Data from form is valid. Update the record.
+            const updatedUser = await User.findByIdAndUpdate(req.params.id, user, {});
+            res.redirect(updatedUser.url);
+          }
+        }
+    })} catch (err) {
+      return next(err);
+    }
+  }),
+];

@@ -2,3 +2,10 @@ extends layout
 
 block content
     h1 #{user.username}
+
+    if c_user
+        if c_user._id.toString() === user._id.toString()
+            p
+                a(href=user.url+'/delete') Delete User
+            p
+                a(href=user.url+'/update') Update User
