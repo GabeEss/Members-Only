@@ -1,6 +1,7 @@
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const User = require("../models/user");
+const Message = require("../models/message");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
@@ -153,16 +154,53 @@ exports.user_delete_get = asyncHandler(async (req, res, next) => {
     return next(err);
   }
 
+  // All messages owned by the user
+  const allMessagesByUser = await Message.find({ owner: req.params.id }, "title timestamp").exec();
+
   res.render("user_delete", {
     title: "Delete User",
     user: user,
+    user_messages: allMessagesByUser,
     c_user: req.user,
   });
 });
 
 // Handle user delete on POST.
 exports.user_delete_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: user delete POST");
+  console.log("beginning of delete post");
+  // Check if the current user is the user being updated
+  const user = await User.findById(req.params.id);
+
+  if (!user || !user.equals(req.user._id)) {
+    // User is not the owner of the original message. Redirect or handle accordingly.
+    res.status(403).send("Unauthorized");
+    return;
+  }
+
+  // All messages owned by the user
+  const allMessagesByUser = await Message.find({ owner: req.params.id }, "title timestamp").exec();
+
+  if (allMessagesByUser.length > 0) {
+    // User has messages. Don't delete.
+    res.render("user_delete", {
+      title: "Delete User",
+      user: user,
+      user_messages: allMessagesByUser,
+      c_user: req.user,
+    });
+    return;
+  } else {
+    console.log("before delete");
+    // User has no messages. Delete object and redirect to the root page.
+    await User.findByIdAndDelete(req.body.userid);
+    // Using req.logout with a callback function
+    req.logout((err) => {
+      if (err) {
+          return next(err);
+      }
+      res.redirect("/");
+    });
+  }
 });
 
 // Display user update form on GET.
